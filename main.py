@@ -95,10 +95,10 @@ def main():
     photo_button_down = False
     while True:
         print("running")
-        if controller.stream_switch() and not photo_button_down:
+        if not controller.stream_switch() and not photo_button_down:
             camera.stream(controller)
 
-        elif controller.photo_button() and not photo_button_down:
+        elif not controller.photo_button() and not photo_button_down:
             photo_button_down = True
             camera.snap()
         else:
