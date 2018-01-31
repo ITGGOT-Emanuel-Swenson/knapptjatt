@@ -68,15 +68,15 @@ def main():
     GPIO.setmode(GPIO.BOARD)
 
     # pins
-    photo_button_pin = 16 
-    stream_button_pin = 18
+    photo_button_pin = 12
+    stream_button_pin = 16
     propeller_pin = 22
 
     # setup pins
     GPIO.setup(photo_button_pin, GPIO.IN)
     GPIO.setup(stream_button_pin, GPIO.IN)
     GPIO.setup(propeller_pin, GPIO.OUT)
-    
+
     # misc
     # where to save pictures
     picture_folder_path = "./images/"
@@ -92,17 +92,17 @@ def main():
 
     # concept code to not use in production
 
-    photo_button_down = False
+    photo_button_not_down = True
     while True:
         print("running")
-        if not controller.stream_switch() and not photo_button_down:
+        if controller.stream_switch() and photo_button_not_down:
             camera.stream(controller)
 
-        elif not controller.photo_button() and not photo_button_down:
-            photo_button_down = True
+        elif controller.photo_button() and photo_button_not_down:
+            photo_button_not_down = False
             camera.snap()
-        else:
-            photo_button_down = False
+        elif not controller.photo_button() and not photo_button_not_down:
+            photo_button_not_down = True
 
 if __name__ == "__main__":
     main()
