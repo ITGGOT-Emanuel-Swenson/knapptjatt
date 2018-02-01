@@ -69,8 +69,8 @@ def main():
 
     # pins
     photo_button_pin = 12
-    stream_button_pin = 16
-    propeller_pin = 22
+    stream_button_pin = 22
+    propeller_pin = 16
 
     # setup pins
     GPIO.setup(photo_button_pin, GPIO.IN)
