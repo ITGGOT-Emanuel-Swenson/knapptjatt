@@ -63,8 +63,11 @@ class Controller(object):
         return GPIO.input(self.stream_pin)
 
 def main():
+    
     # setup GPIO
     GPIO.setwarnings(False)
+    # reset pins
+    GPIO.cleanup()
     GPIO.setmode(GPIO.BOARD)
 
     # pins
