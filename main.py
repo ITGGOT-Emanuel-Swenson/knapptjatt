@@ -6,6 +6,7 @@ import time
 class Camera(object):
 
     def __init__(self, propeller, img_folder:str, rtmp_adress:str):
+        print('creating camera')
         self.camera = picamera.PiCamera()
 
         # for picture taking
@@ -28,10 +29,10 @@ class Camera(object):
         # activate stream
         stream = subprocess.Popen("./ustream.sh")
         while controller.stream_switch():
-            print("streaming")
+            #print("streaming")
+            pass
         # stream over
-        stream.terminate()
-        stream.terminate()
+        stream.kill()
         #close sockets and connections etc
         self.propeller.spin_off()
 
