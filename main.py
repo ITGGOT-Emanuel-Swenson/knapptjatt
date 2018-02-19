@@ -1,4 +1,5 @@
 import picamera
+import subprocess
 import RPi.GPIO as GPIO
 import time
 
@@ -23,13 +24,16 @@ class Camera(object):
 
     def stream(self, controller):
 
-        self.controller.spin_on()
+        self.propeller.spin_on()
         # activate stream
+        stream = subprocess.Popen("./ustream.sh")
         while controller.stream_switch():
             print("streaming")
         # stream over
+        stream.terminate()
+        stream.terminate()
         #close sockets and connections etc
-        self.controller.spin_off()
+        self.propeller.spin_off()
 
 class Propeller(object):
 
@@ -71,9 +75,9 @@ def main():
     GPIO.setmode(GPIO.BOARD)
 
     # pins
-    photo_button_pin = 12
-    stream_button_pin = 22
-    propeller_pin = 16
+    photo_button_pin = 22
+    stream_button_pin = 16
+    propeller_pin = 11
 
     # setup pins
     GPIO.setup(photo_button_pin, GPIO.IN)
@@ -108,4 +112,9 @@ def main():
             photo_button_not_down = True
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        GPIO.cleanup()
+        sys.exit(0)
+
