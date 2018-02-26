@@ -1,5 +1,5 @@
 import picamera
-import subprocess
+import subprocess, os
 import RPi.GPIO as GPIO
 import time
 
@@ -14,7 +14,7 @@ class Camera(object):
         self.path = img_folder
 
         # for streaming
-        self.adress = rtmp_adress
+        self.null = open(os.devnull, "w")
     
     def snap(self):
 
@@ -27,13 +27,15 @@ class Camera(object):
 
         self.propeller.spin_on()
         # activate stream
-        stream = subprocess.Popen("./ustream.sh")
+        # stream = subprocess.Popen("./ustream.sh")
+        cam = subprocess.Popen(['raspivid', '-n', '-vf', '-hf', '-t', '0', '-w', '960', '-h', '540', '-fps', '25', '-b', '500000', '-o', '-'], stdout=subprocess.PIPE)
+        ffmpeg = subprocess.Popen( ['ffmpeg', '-i', '-', '-vcodec', 'copy', '-an', '-metadata', 'title=""Streaming from raspberry pi camera"', '-f', 'flv', 'rtmp://1.23526611.fme.ustream.tv/ustreamVideo/23526611/Tmh6bU2fLmjw6pYygdnn7GtV3jAMbeFw'],stdin=cam.stdout, stdout=self.null)
         while controller.stream_switch():
             #print("streaming")
             pass
         # stream over
-        stream.kill()
-        #close sockets and connections etc
+        cam.terminate()
+        ffpmeg.terminate()
         self.propeller.spin_off()
 
 class Propeller(object):
