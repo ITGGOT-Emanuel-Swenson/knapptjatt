@@ -1,4 +1,5 @@
 import picamera
+import sys
 import subprocess, os
 import RPi.GPIO as GPIO
 import time
@@ -6,8 +7,10 @@ import time
 class Camera(object):
 
     def __init__(self, propeller, img_folder:str, rtmp_adress:str):
-        print('creating camera')
-        self.camera = picamera.PiCamera()
+
+        # picamera blocks streaming, depreaceated for bash command tools
+        # print('creating camera')
+        # self.camera = picamera.PiCamera()
 
         # for picture taking
         self.propeller = propeller
@@ -20,7 +23,7 @@ class Camera(object):
 
         # unix time in whole seconds becomes filename
         image_name = str(int(time.time())) + ".jpg"
-        self.camera.capture(self.path + image_name)
+        subprocess.Popen(["raspistill", "-w", "1080", "-h", "1920", "-o", "images/{0}".format(image_name)])
         self.propeller.short_spin()
 
     def stream(self, controller):
@@ -28,14 +31,16 @@ class Camera(object):
         self.propeller.spin_on()
         # activate stream
         # stream = subprocess.Popen("./ustream.sh")
-        cam = subprocess.Popen(['raspivid', '-n', '-vf', '-hf', '-t', '0', '-w', '960', '-h', '540', '-fps', '25', '-b', '500000', '-o', '-'], stdout=subprocess.PIPE)
-        ffmpeg = subprocess.Popen( ['ffmpeg', '-i', '-', '-vcodec', 'copy', '-an', '-metadata', 'title=""Streaming from raspberry pi camera"', '-f', 'flv', 'rtmp://1.23526611.fme.ustream.tv/ustreamVideo/23526611/Tmh6bU2fLmjw6pYygdnn7GtV3jAMbeFw'],stdin=cam.stdout, stdout=self.null)
+        print("starting cam")
+        self.cam = subprocess.Popen(['raspivid', '-n', '-vf', '-hf', '-t', '0', '-w', '960', '-h', '540', '-fps', '25', '-b', '500000', '-o', '-'], stdout=subprocess.PIPE)
+        print("starting stream")
+        self.ffmpeg = subprocess.Popen( ['ffmpeg', '-i', '-', '-vcodec', 'copy', '-an', '-metadata', 'title=""Streaming from raspberry pi camera"', '-f', 'flv', 'rtmp://1.23526611.fme.ustream.tv/ustreamVideo/23526611/Tmh6bU2fLmjw6pYygdnn7GtV3jAMbeFw'],stdin=self.cam.stdout, stdout=self.null)
         while controller.stream_switch():
             #print("streaming")
             pass
         # stream over
-        cam.terminate()
-        ffpmeg.terminate()
+        self.ffmpeg.terminate()
+        self.cam.terminate()
         self.propeller.spin_off()
 
 class Propeller(object):
@@ -84,7 +89,9 @@ def main():
 
     # setup pins
     GPIO.setup(photo_button_pin, GPIO.IN)
-    GPIO.setup(stream_button_pin, GPIO.IN)
+    
+    # pull down, this might fix random false positive
+    GPIO.setup(stream_button_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
     GPIO.setup(propeller_pin, GPIO.OUT)
 
     # misc
