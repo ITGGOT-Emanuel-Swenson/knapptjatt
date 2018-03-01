@@ -23,12 +23,13 @@ class Camera(object):
 
         # unix time in whole seconds becomes filename
         image_name = str(int(time.time())) + ".jpg"
-        subprocess.Popen(["raspistill", "-w", "1080", "-h", "1920", "-o", "images/{0}".format(image_name)])
+        subprocess.Popen(["raspistill", "-vf", "-hf", "-w", "1920", "-h", "1080", "-o", "/home/pi/project/images/{0}".format(image_name)])
         self.propeller.short_spin()
 
     def stream(self, controller):
 
-        self.propeller.spin_on()
+        # propeller spin disabled since it mucks with button events for some reason
+        #self.propeller.spin_on()
         # activate stream
         # stream = subprocess.Popen("./ustream.sh")
         print("starting cam")
@@ -39,9 +40,11 @@ class Camera(object):
             #print("streaming")
             pass
         # stream over
+        print("stream over")
         self.ffmpeg.terminate()
         self.cam.terminate()
-        self.propeller.spin_off()
+        #self.propeller.spin_off()
+        time.sleep(2)
 
 class Propeller(object):
 
@@ -90,7 +93,7 @@ def main():
     # setup pins
     GPIO.setup(photo_button_pin, GPIO.IN)
     
-    # pull down, this might fix random false positive
+    # pull down, this fixes random false positive
     GPIO.setup(stream_button_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
     GPIO.setup(propeller_pin, GPIO.OUT)
 
@@ -113,6 +116,7 @@ def main():
     while True:
         print("running")
         if controller.stream_switch() and photo_button_not_down:
+            print("stream event detected")
             camera.stream(controller)
 
         elif controller.photo_button() and photo_button_not_down:
